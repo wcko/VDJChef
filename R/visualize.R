@@ -6,19 +6,21 @@
 #' @param title Title of the ggplot2 plot
 #' @param clonotype_id Clonotype ID among values listed by "clonotype_by" parameter
 #' @param clonotype_by the label of the column in metadata that defines clonotypes
-#' @param color_by
-#' @param facet_by
-#' @param ncol
-#' @param label
-#' @param size
-#' @param alpha
-#' @param colors
-#' @param theme
-#' @param legend_dot_size
-#' @param xcol
-#' @param ycol
-#' @param text_sizes
-#' @param shuffle
+#' @param label if true, labels of "color_by" will be visualized on embedding
+#' @param color_by What to color points by, either "UMI_sum", or pData categorial variable, ignored if gene is provided
+#' @param facet_by What to break the plots by
+#' @param ncol How many columns if faceting
+#' @param size The size of the points
+#' @param alpha The transparency of the points
+#' @param colors What colors to utilize for categorial data. Be sure it is of the proper length!
+#' @param legend_dot_size Size of dot in legend
+#' @param xcol pData column to use for x axis
+#' @param ycol pData column to use for y axis
+#' @param reduction the reduction key for Seurat objects
+#' @param text_sizes text sizes for multiple components of the ggplot figure
+#' @param shuffle change order of labels
+#'
+#' @import ggplot2
 #'
 #' @return
 #' @export
@@ -26,11 +28,18 @@
 #' @examples
 plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by, color_by, facet_by = NULL, ncol = NULL, label = FALSE,
                                   size = 1.5, alpha = 0.3, colors = NULL, theme = "classic", legend_dot_size = 1.5,
-                                  xcol = "x", ycol = "y", text_sizes = c(20, 10, 5, 10), shuffle = F)
+                                  xcol = "x", ycol = "y", reduction = "umap", text_sizes = c(20, 10, 5, 10), shuffle = F)
 {
   # get metadata
-  tmp <- pData(input)
-  tmp_clonotype <- pData(input)[pData(input)[[clonotype_by]] %in% clonotype_id,]
+  if(class(input) == "Seurat"){
+    tmp <- input@meta.data
+    coord <- input@reductions[[reduction]]@cell.embeddings
+    tmp[[xcol]] <- coord[,1]
+    tmp[[ycol]] <- coord[,2]
+  } else {
+    tmp <- pData(input)
+  }
+  tmp_clonotype <- tmp[tmp[[clonotype_by]] %in% clonotype_id,]
 
   # shuffle ?
   if (shuffle) {
@@ -40,23 +49,33 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
     tmp_clonotype <- tmp_clonotype[order(tmp_clonotype[, color_by]), ]
   }
 
-  # plot and theme setting
-  if (title == "") title <- paste(clonotype_by, clonotype_id, sep = " = ")
+  # initial plot
   g <- ggplot(tmp_clonotype)
-  g <- g + labs(title = title, x = "tSNE[1]", y = "tSNE[2]")
   if (theme == "bw") {
     g <- g + theme_bw()
   }
   else {
     g <- g + theme_classic()
   }
+
+  # title setting
+  if (title == "") title <- paste(clonotype_by, clonotype_id, sep = " = ")
+
+  # x and y labs
+  if(class(input) == "Seurat"){
+    main_lab <- reduction
+    g <- g + labs(title = title, x = paste0(reduction,"[1]"), y = paste0(reduction,"[2]"))
+  } else {
+    g <- g + labs(title = title, x = "tSNE[1]", y = "tSNE[2]")
+  }
+
+  # other features
   g <- g + theme(plot.title = element_text(size = text_sizes[1]),
                  axis.title = element_text(size = text_sizes[2]), axis.text = element_text(size = text_sizes[3]))
   g <- g + theme(legend.position = "right", plot.title = element_text(hjust = 0.5))
   g <- g + guides(colour = guide_legend(override.aes = list(size = legend_dot_size)))
 
   # grey background
-  tmp <- pData(input)[c(xcol, ycol)]
   g <- g + geom_point(data = tmp, aes_string(x = xcol, y = ycol), shape = 20, col = "gray", size = size,
                       alpha = alpha)
 
@@ -75,15 +94,13 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
     label_color <- paste0(names(color_by_freq), label_sep, color_by_freq)
     g <- g + geom_point(data = tmp_clonotype, aes_string(x = xcol, y = ycol, col = color_by),
                         shape = 20, size = size)
-    # g <- g + scale_color_manual(values = names(color_by_freq), labels = paste(names(color_by_freq), color_by_freq, sep = ", "))
     g <- g + scale_colour_discrete(limits = names(color_by_freq), labels = label_color)
     if (!is.null(colors)) {
       g <- g + scale_color_manual(values = c(colors))
     }
     if(label){
-      color_by_levels <- levels(factor(pData(input)[, color_by]))
-      coords <- pData(input)[,c(xcol,ycol)]
-      coords <- aggregate(coords, list(pData(input)[[color_by]]), median)
+      coords <- tmp[,c(xcol,ycol)]
+      coords <- aggregate(coords, list(tmp[[color_by]]), median)
       g <- g + geom_text(data = coords, aes(x = x, y=y, label = Group.1))
     }
   }
@@ -99,22 +116,25 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
 #'
 #' Get top clonotypes categorized by a column in metadata
 #'
-#' @param input
-#' @param clonotype_by
-#' @param group_by
-#' @param ntop
-#' @param split_by
-#' @param chain_type
-#' @param Count_limit
+#' @param input ExpressionSet or Seurat Object
+#' @param clonotype_by the label of the column in metadata that defines clonotypes
+#' @param group_by what to group clonotypes frequencies
+#' @param ntop the number of top clonotypes
+#' @param split_by split tables by
+#' @param chain_type subset table to chain type
 #'
 #' @return
 #' @export
 #'
 #' @examples
-get_topclonotypes <- function(input, clonotype_by, group_by, ntop = 20, split_by = NULL, chain_type = NULL, Count_limit = NULL){
+get_topclonotypes <- function(input, clonotype_by, group_by, ntop = 20, split_by = NULL, chain_type = NULL){
 
   # get metadata, specific to clonotypes
-  tmp <- pData(input)
+  if(class(input) == "Seurat"){
+    tmp <- input@meta.data
+  } else {
+    tmp <- pData(input)
+  }
   tmp <- tmp[!is.na(tmp[[clonotype_by]]),]
 
   if(!is.null(chain_type))
@@ -142,11 +162,16 @@ get_topclonotypes <- function(input, clonotype_by, group_by, ntop = 20, split_by
 #'
 #' Visual the clonotype expansion in an heatmap
 #'
-#' @param input
-#' @param clonotype_by
-#' @param color_by
-#' @param ntop
-#' @param Count_limit
+#' @param input ExpressionSet or Seurat Object
+#' @param clonotype_by the label of the column in metadata that defines clonotypes
+#' @param group_by what to group clonotypes frequencies
+#' @param color_by What to color points by, either "UMI_sum", or pData categorial variable, ignored if gene is provided
+#' @param ntop the number of top clonotypes
+#' @param Count_limit count limit for plot legend
+#'
+#' @importFrom ComplexHeatmap Heatmap
+#' @importFrom circlize colorRamp2
+#' @importFrom grid grid.text
 #'
 #' @return
 #' @export
@@ -155,7 +180,11 @@ get_topclonotypes <- function(input, clonotype_by, group_by, ntop = 20, split_by
 plot_heatmap_clonotypes <- function(input, clonotype_by, color_by, ntop = 20, Count_limit = NULL){
 
   # get metadata, specific to clonotypes
-  tmp <- pData(input)
+  if(class(input) == "Seurat"){
+    tmp <- input@meta.data
+  } else {
+    tmp <- pData(input)
+  }
   tmp <- tmp[!is.na(tmp[[clonotype_by]]),]
 
   # data for heatmap
