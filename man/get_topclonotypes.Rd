@@ -26,9 +26,6 @@ get_topclonotypes(
 
 \item{chain_type}{subset table to chain type}
 }
-\value{
-
-}
 \description{
 Get top clonotypes categorized by a column in metadata
 }

@@ -13,6 +13,7 @@
 #' @param size The size of the points
 #' @param alpha The transparency of the points
 #' @param colors What colors to utilize for categorial data. Be sure it is of the proper length!
+#' @param theme display theme
 #' @param legend_dot_size Size of dot in legend
 #' @param xcol pData column to use for x axis
 #' @param ycol pData column to use for y axis
@@ -22,7 +23,6 @@
 #'
 #' @import ggplot2
 #'
-#' @return
 #' @export
 #'
 #' @examples
@@ -123,7 +123,6 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
 #' @param split_by split tables by
 #' @param chain_type subset table to chain type
 #'
-#' @return
 #' @export
 #'
 #' @examples
@@ -164,16 +163,14 @@ get_topclonotypes <- function(input, clonotype_by, group_by, ntop = 20, split_by
 #'
 #' @param input ExpressionSet or Seurat Object
 #' @param clonotype_by the label of the column in metadata that defines clonotypes
-#' @param group_by what to group clonotypes frequencies
 #' @param color_by What to color points by, either "UMI_sum", or pData categorial variable, ignored if gene is provided
 #' @param ntop the number of top clonotypes
 #' @param Count_limit count limit for plot legend
 #'
 #' @importFrom ComplexHeatmap Heatmap
 #' @importFrom circlize colorRamp2
-#' @importFrom grid grid.text
+#' @import grid
 #'
-#' @return
 #' @export
 #'
 #' @examples

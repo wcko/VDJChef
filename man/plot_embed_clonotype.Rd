@@ -48,6 +48,8 @@ plot_embed_clonotype(
 
 \item{colors}{What colors to utilize for categorial data. Be sure it is of the proper length!}
 
+\item{theme}{display theme}
+
 \item{legend_dot_size}{Size of dot in legend}
 
 \item{xcol}{pData column to use for x axis}
@@ -59,9 +61,6 @@ plot_embed_clonotype(
 \item{text_sizes}{text sizes for multiple components of the ggplot figure}
 
 \item{shuffle}{change order of labels}
-}
-\value{
-
 }
 \description{
 Visual and highlight clonotypes given an embedding

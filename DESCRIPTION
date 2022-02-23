@@ -6,7 +6,8 @@ Author: Artur Manukyan, Erica Katz, Wei-Che Ko
 Maintainer: Artur Manukyan <artur-man@hotmail.com>
 Description: VDJChef is an R package to import, visualize and analyze Cellranger vdj pipelines outputs. 
              VDJChef is compatible with both SignallingSingleCell and Seurat packages. 
-License: What license is it under?
+License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
+Imports: dplyr, grid, ComplexHeatmap, devtools, stringr, circlize, ggplot2
 RoxygenNote: 7.1.2

@@ -22,11 +22,6 @@ plot_heatmap_clonotypes(
 \item{ntop}{the number of top clonotypes}
 
 \item{Count_limit}{count limit for plot legend}
-
-\item{group_by}{what to group clonotypes frequencies}
-}
-\value{
-
 }
 \description{
 Visual the clonotype expansion in an heatmap
