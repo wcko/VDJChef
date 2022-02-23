@@ -2,7 +2,7 @@ Package: VDJChef
 Type: Package
 Title: VDJChef for vdj analysis
 Version: 1.0.0
-Author: Artur Manukyan, Erica Katz, Wei-Che Ko
+Author: Artur Manukyan, Wei-Che Ko, Erica Katz, Manuel Garber
 Maintainer: Artur Manukyan <artur-man@hotmail.com>
 Description: VDJChef is an R package to import, visualize and analyze Cellranger vdj pipelines outputs. 
              VDJChef is compatible with both SignallingSingleCell and Seurat packages. 
