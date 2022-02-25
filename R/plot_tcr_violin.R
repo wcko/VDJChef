@@ -21,7 +21,8 @@
 #' Utilize information stored in meta.data to control the plot display. Each point_by as a dot with a bar showing the weighted mean of all point_by dots.
 #' color_by is set to display Expanded and Non-expanded clones
 #' @examples
-#' plot_tcr_violin(ex_sc, gene = "GNLY", clone = "clonotype1_SJS001", facet_by = c("hash.ID"))
+#' plot_tcr_violin(ex_sc, gene = "rna_GNLY", clone = "clonotype1_SJS001", facet_by = c("hash.ID"))
+#' plot_tcr_violin(ex_sc, gene = "CD8A", clone = "CAAGAGFGNVLHC_CASSIGRWNGYTF", clonotype_id="CTaa", facet_by = c("Patient","Sample_Subtype), threshold=1)
 #' plot_tcr_violin(ex_sc, gene = "GNLY", clone = "clonotype1_SJS001", threshold=1, facet_by = c("hash.ID", "CellTypeSuperCluster"), log_scale = F)
 #' @export
 plot_tcr_violin <- function (input, title = "", gene, clone, clonotype_id="clonotype_id", threshold=5, log_scale = F,
@@ -33,13 +34,16 @@ plot_tcr_violin <- function (input, title = "", gene, clone, clonotype_id="clono
   df <- data.frame()
   if (class(input) == "Seurat") {
     df <- input@meta.data[,colnames(input@meta.data) %in% c(clonotype_id, facet_by), drop = F]
+    colnames(df)[which(colnames(df)==clonotype_id)] <- "clonotype_id"
+    clonotype_id <- "clonotype_id"
     df <- df[!is.na(df$clonotype_id),]
+    colnames(input@meta.data)[which(colnames(input@meta.data)=="clonotype_id")] <- "clonotype_id"
     clonotypedf <- df %>%
       count(clonotype_id) %>%
       mutate(expanded_status = ifelse(n > threshold, "expanded", "non-expanded")) %>%
       select(-n)
     df$barcodes <- rownames(df)
-    df <- inner_join(df, clonotypedf, by=clonotype_id)
+    df <- inner_join(df, clonotypedf, by= clonotype_id)
     df.sub <- df[df$clonotype_id==clone,]
     df.sub <- bind_rows(df.sub, df[df$expanded_status=='non-expanded',])
     df <- df.sub
@@ -47,6 +51,8 @@ plot_tcr_violin <- function (input, title = "", gene, clone, clonotype_id="clono
   }
   else if (class(input) == "ExpressionSet") {
     df <- pData(input)[, colnames(pData(input)) %in% c(clonotype_id, facet_by), drop = F]
+    colnames(df)[which(colnames(df)==clonotype_id)] <- "clonotype_id"
+    clonotype_id <- "clonotype_id"
     df <- df[!is.na(df$clonotype_id),]
     clonotypedf <- df %>%
       count(clonotype_id) %>%
@@ -57,7 +63,7 @@ plot_tcr_violin <- function (input, title = "", gene, clone, clonotype_id="clono
     df.sub <- df[df$clonotype_id==clone,]
     df.sub <- bind_rows(df.sub, df[df$expanded_status=='non-expanded',])
     df <- df.sub
-    df <- bind_cols(df, raw=exprs(exsc[,df$barcodes])[gene,])
+    df <- bind_cols(df, raw=exprs(input[,df$barcodes])[gene,])
   }
   else {
     print("Input is neither a Seurat Object or ExpressionSet")
@@ -101,7 +107,7 @@ plot_tcr_violin <- function (input, title = "", gene, clone, clonotype_id="clono
   }else{
     g <- g + theme_classic()
   }
-  if (title == "") title <- paste0(gene,"-",clone)
+  if (title == "") title <- paste0(gene," - ",clone)
   g <- g + labs(title = title, y = gene)
   g <- g + theme(plot.title = element_text(size = text_sizes[1]),
                  axis.title = element_text(size = text_sizes[2]), axis.text = element_text(size = text_sizes[3]),
