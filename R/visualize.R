@@ -233,7 +233,7 @@ plot_heatmap_clonotypes <- function(input, clonotype_by, group_by = NULL, sample
   count_heatmap <- Heatmap(clonotypes_vs_color, col = col_fun,
                            row_names_side = "left", column_names_side = "top",
                            column_names_rot = 45, cluster_columns = FALSE, cluster_rows = FALSE,
-                           heatmap_legend_param = list(title = ""),
+                           heatmap_legend_param = list(title = ""), border = TRUE, column_split = heatmap_split,
                            column_names_gp = grid::gpar(fontsize = 8), row_names_gp = grid::gpar(fontsize = 8),
                            cell_fun = function(j, i, x, y, width, height, fill) {
                              grid.text(paste0(sprintf("%.0f", clonotypes_vs_color[i, j])), x, y, gp = gpar(fontsize = 10))
