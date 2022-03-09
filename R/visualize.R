@@ -73,7 +73,7 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
   g <- g + theme(plot.title = element_text(size = text_sizes[1]),
                  axis.title = element_text(size = text_sizes[2]), axis.text = element_text(size = text_sizes[3]))
   g <- g + theme(legend.position = "right", plot.title = element_text(hjust = 0.5))
-  g <- g + guides(colour = guide_legend(override.aes = list(size = legend_dot_size)))
+  g <- g + guides(colour = guide_legend(title = paste0(color_by, " (Freq.)"), override.aes = list(size = legend_dot_size)))
 
   # grey background
   g <- g + geom_point(data = tmp, aes_string(x = xcol, y = ycol), shape = 20, col = "gray", size = size,
@@ -86,12 +86,12 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
     g <- g + scale_color_gradientn(colours = c("gray", "blue", "red", "yellow"))
   }
   else {
-    color_by_freq <- table(tmp_clonotype[, color_by])
+    color_by_freq <- table(droplevels(tmp_clonotype[, color_by]))
     color_by_freq <- color_by_freq[order(color_by_freq, decreasing = TRUE)]
     label_length <- sapply(names(color_by_freq), nchar)
     label_sep <- max(label_length) - label_length + 2
     label_sep <- sapply(label_sep, function(x) return(paste(rep(" ", x), collapse="")))
-    label_color <- paste0(names(color_by_freq), label_sep, color_by_freq)
+    label_color <- paste0(names(color_by_freq), label_sep, "(", color_by_freq,")")
     g <- g + geom_point(data = tmp_clonotype, aes_string(x = xcol, y = ycol, col = color_by),
                         shape = 20, size = size)
     g <- g + scale_colour_discrete(limits = names(color_by_freq), labels = label_color)
@@ -119,6 +119,8 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
 #' @param input ExpressionSet or Seurat Object
 #' @param clonotype_by the label of the column in metadata that defines clonotypes
 #' @param group_by what to group clonotypes frequencies
+#' @param sample_by name of the sample metadata variable
+#' @param patient_by name of the patient metadata variable
 #' @param ntop the number of top clonotypes
 #' @param split_by split tables by
 #' @param chain_type subset table to chain type
@@ -126,7 +128,7 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
 #' @export
 #'
 #' @examples
-get_topclonotypes <- function(input, clonotype_by, group_by, ntop = 20, split_by = NULL, chain_type = NULL){
+get_topclonotypes <- function(input, clonotype_by, group_by = NULL, sample_by = NULL, patient_by = NULL, ntop = 20, split_by = NULL, chain_type = NULL){
 
   # get metadata, specific to clonotypes
   if(class(input) == "Seurat"){
@@ -141,17 +143,31 @@ get_topclonotypes <- function(input, clonotype_by, group_by, ntop = 20, split_by
 
   # data for heatmap
   if(is.null(split_by)){
-    clonotypes_vs_color <- table(tmp[[clonotype_by]], tmp[[group_by]])
-    clonotypes_vs_color <- data.frame(rbind(clonotypes_vs_color))
-    clonotypes_vs_color$Total <- rowSums(clonotypes_vs_color)
-    clonotypes_vs_color <- clonotypes_vs_color[order(clonotypes_vs_color$Total, decreasing = TRUE)[1:ntop],]
+    if(is.null(patient_by) || is.null(patient_by)){
+      clonotypes_vs_color <- table(tmp[[clonotype_by]], tmp[[group_by]])
+      clonotypes_vs_color <- data.frame(rbind(clonotypes_vs_color))
+      clonotypes_vs_color$Total <- rowSums(clonotypes_vs_color)
+      clonotypes_vs_color <- clonotypes_vs_color[order(clonotypes_vs_color$Total, decreasing = TRUE)[1:ntop],-length(clonotypes_vs_color), drop = FALSE]
+    } else {
+      tmp <- split(tmp, list(tmp[[patient_by]]))
+      clonotypes_vs_color <- lapply(tmp, function(x){
+        x <- table(x[[clonotype_by]], x[[sample_by]])
+        x <- data.frame(rbind(x))
+        x$Total <- rowSums(x)
+        x <- x[order(x$Total, decreasing = TRUE)[1:ntop],-ncol(x), drop = FALSE]
+      })
+      colnames_clono <- unlist(lapply(clonotypes_vs_color, colnames))
+      clonotypes_vs_color <- do.call(cbind, clonotypes_vs_color)
+      rownames(clonotypes_vs_color) <- NULL
+      colnames(clonotypes_vs_color) <- colnames_clono
+    }
   } else {
     tmp <- split(tmp, list(tmp[[split_by]]))
     clonotypes_vs_color <- lapply(tmp, function(x){
       x <- table(x[[clonotype_by]], x[[group_by]])
       x <- data.frame(rbind(x))
       x$Total <- rowSums(x)
-      x <- x[order(x$Total, decreasing = TRUE)[1:ntop],]
+      x <- x[order(x$Total, decreasing = TRUE)[1:ntop],-ncol(x), drop = FALSE]
     })
   }
   return(clonotypes_vs_color)
@@ -163,7 +179,9 @@ get_topclonotypes <- function(input, clonotype_by, group_by, ntop = 20, split_by
 #'
 #' @param input ExpressionSet or Seurat Object
 #' @param clonotype_by the label of the column in metadata that defines clonotypes
-#' @param color_by What to color points by, either "UMI_sum", or pData categorial variable, ignored if gene is provided
+#' @param group_by What to color points by, either "UMI_sum", or pData categorial variable, ignored if gene is provided
+#' @param sample_by name of the sample metadata variable
+#' @param patient_by name of the patient metadata variable
 #' @param ntop the number of top clonotypes
 #' @param Count_limit count limit for plot legend
 #'
@@ -174,7 +192,7 @@ get_topclonotypes <- function(input, clonotype_by, group_by, ntop = 20, split_by
 #' @export
 #'
 #' @examples
-plot_heatmap_clonotypes <- function(input, clonotype_by, color_by, ntop = 20, Count_limit = NULL){
+plot_heatmap_clonotypes <- function(input, clonotype_by, group_by = NULL, sample_by = NULL, patient_by = NULL, ntop = 20, Count_limit = NULL){
 
   # get metadata, specific to clonotypes
   if(class(input) == "Seurat"){
@@ -185,10 +203,26 @@ plot_heatmap_clonotypes <- function(input, clonotype_by, color_by, ntop = 20, Co
   tmp <- tmp[!is.na(tmp[[clonotype_by]]),]
 
   # data for heatmap
-  clonotypes_vs_color <- table(tmp[[clonotype_by]], tmp[[color_by]])
-  clonotypes_vs_color <- data.frame(rbind(clonotypes_vs_color))
-  clonotypes_vs_color_Total <- rowSums(clonotypes_vs_color)
-  clonotypes_vs_color <- clonotypes_vs_color[order(clonotypes_vs_color_Total, decreasing = TRUE)[1:ntop],]
+  if(is.null(patient_by) || is.null(patient_by)){
+    clonotypes_vs_color <- table(tmp[[clonotype_by]], tmp[[group_by]])
+    clonotypes_vs_color <- data.frame(rbind(clonotypes_vs_color))
+    clonotypes_vs_color$Total <- rowSums(clonotypes_vs_color)
+    clonotypes_vs_color <- clonotypes_vs_color[order(clonotypes_vs_color$Total, decreasing = TRUE)[1:ntop],-length(clonotypes_vs_color), drop = FALSE]
+    heatmap_split <- NULL
+    } else {
+    tmp <- split(tmp, list(tmp[[patient_by]]))
+    clonotypes_vs_color <- lapply(tmp, function(x){
+      x <- table(x[[clonotype_by]], x[[sample_by]])
+      x <- data.frame(rbind(x))
+      x$Total <- rowSums(x)
+      x <- x[order(x$Total, decreasing = TRUE)[1:ntop],-ncol(x), drop = FALSE]
+    })
+    heatmap_split <- rep(names(clonotypes_vs_color), sapply(clonotypes_vs_color, ncol))
+    colnames_clono <- unlist(lapply(clonotypes_vs_color, colnames))
+    clonotypes_vs_color <- do.call(cbind, clonotypes_vs_color)
+    rownames(clonotypes_vs_color) <- NULL
+    colnames(clonotypes_vs_color) <- colnames_clono
+  }
 
   # heatmap auxiliary tools
   col_fun = colorRamp2(c(max(clonotypes_vs_color), 0), c("red","white"))
@@ -199,7 +233,7 @@ plot_heatmap_clonotypes <- function(input, clonotype_by, color_by, ntop = 20, Co
   count_heatmap <- Heatmap(clonotypes_vs_color, col = col_fun,
                            row_names_side = "left", column_names_side = "top",
                            column_names_rot = 45, cluster_columns = FALSE, cluster_rows = FALSE,
-                           heatmap_legend_param = list(title = ""), column_title = NULL,
+                           heatmap_legend_param = list(title = ""),
                            column_names_gp = grid::gpar(fontsize = 8), row_names_gp = grid::gpar(fontsize = 8),
                            cell_fun = function(j, i, x, y, width, height, fill) {
                              grid.text(paste0(sprintf("%.0f", clonotypes_vs_color[i, j])), x, y, gp = gpar(fontsize = 10))
