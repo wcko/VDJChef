@@ -31,15 +31,17 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
                                   xcol = "x", ycol = "y", reduction = "umap", text_sizes = c(20, 10, 5, 10), shuffle = F)
 {
   # get metadata
+  # get metadata, specific to clonotypes
   if(class(input) == "Seurat"){
     tmp <- input@meta.data
     coord <- input@reductions[[reduction]]@cell.embeddings
     tmp[[xcol]] <- coord[,1]
     tmp[[ycol]] <- coord[,2]
-  } else {
+  } else if (class(input) == "ExpressionSet") {
     tmp <- pData(input)
+  } else {
+    print("Input is neither a Seurat or ExpressionSet Object")
   }
-  tmp_clonotype <- tmp[tmp[[clonotype_by]] %in% clonotype_id,]
 
   # shuffle ?
   if (shuffle) {
@@ -133,8 +135,10 @@ get_topclonotypes <- function(input, clonotype_by, group_by = NULL, sample_by = 
   # get metadata, specific to clonotypes
   if(class(input) == "Seurat"){
     tmp <- input@meta.data
-  } else {
+  } else if (class(input) == "ExpressionSet") {
     tmp <- pData(input)
+  } else {
+    print("Input is neither a Seurat or ExpressionSet Object")
   }
   tmp <- tmp[!is.na(tmp[[clonotype_by]]),]
 
@@ -197,8 +201,10 @@ plot_heatmap_clonotypes <- function(input, clonotype_by, group_by = NULL, sample
   # get metadata, specific to clonotypes
   if(class(input) == "Seurat"){
     tmp <- input@meta.data
-  } else {
+  } else if (class(input) == "ExpressionSet") {
     tmp <- pData(input)
+  } else {
+      print("Input is neither a Seurat or ExpressionSet Object")
   }
   tmp <- tmp[!is.na(tmp[[clonotype_by]]),]
 
