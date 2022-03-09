@@ -7,7 +7,9 @@
 get_topclonotypes(
   input,
   clonotype_by,
-  group_by,
+  group_by = NULL,
+  sample_by = NULL,
+  patient_by = NULL,
   ntop = 20,
   split_by = NULL,
   chain_type = NULL
@@ -19,6 +21,10 @@ get_topclonotypes(
 \item{clonotype_by}{the label of the column in metadata that defines clonotypes}
 
 \item{group_by}{what to group clonotypes frequencies}
+
+\item{sample_by}{name of the sample metadata variable}
+
+\item{patient_by}{name of the patient metadata variable}
 
 \item{ntop}{the number of top clonotypes}
 

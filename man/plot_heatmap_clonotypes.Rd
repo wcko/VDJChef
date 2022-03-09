@@ -7,7 +7,9 @@
 plot_heatmap_clonotypes(
   input,
   clonotype_by,
-  color_by,
+  group_by = NULL,
+  sample_by = NULL,
+  patient_by = NULL,
   ntop = 20,
   Count_limit = NULL
 )
@@ -17,7 +19,11 @@ plot_heatmap_clonotypes(
 
 \item{clonotype_by}{the label of the column in metadata that defines clonotypes}
 
-\item{color_by}{What to color points by, either "UMI_sum", or pData categorial variable, ignored if gene is provided}
+\item{group_by}{What to color points by, either "UMI_sum", or pData categorial variable, ignored if gene is provided}
+
+\item{sample_by}{name of the sample metadata variable}
+
+\item{patient_by}{name of the patient metadata variable}
 
 \item{ntop}{the number of top clonotypes}
 
