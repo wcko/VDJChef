@@ -29,6 +29,9 @@
 #' test$A
 #' left_join(meta,test$A,by="barcode")
 #'
+#' eset <- ExpressionSet(as.matrix(seu@assays$RNA@counts))
+#' pData(eset) <- seu@meta.data
+#'
 contigs <- read.csv("inst/extdata/sc5p_v2_hs_T_1k_multi_5gex_t_vdj_t_filtered_contig_annotations.csv")
 clonotype_info <- read.csv("inst/extdata/sc5p_v2_hs_T_1k_multi_5gex_t_vdj_t_clonotypes.csv")
 
@@ -36,7 +39,7 @@ clonotype_info <- read.csv("inst/extdata/sc5p_v2_hs_T_1k_multi_5gex_t_vdj_t_clon
 combineTCR <- function (df, clonotype_info, cells = "T-AB", removeNA = FALSE,
                         removeMulti = FALSE, filterMulti = FALSE)
 {
-  # source_url("https://raw.githubusercontent.com/ncborcherding/scRepertoire/master/R/utils.R")
+  source_url("https://raw.githubusercontent.com/ncborcherding/scRepertoire/master/R/utils.R")
   out <- NULL
   final <- NULL
   tcr1_lines <- c("TCR1", "cdr3_aa1", "cdr3_nt1")
@@ -218,6 +221,7 @@ combineExpression <- function(df, sc, cloneCall="gene+nt",
             barcodes in the combined immune receptor list")
     }
     col.name <- names(PreMeta) %||% colnames(PreMeta)
+    pData(sc)$barcode <- rownames(pData(sc))
     sc_metadata <- pData(sc) %>% left_join(PreMeta, by="barcode")
     rownames(sc_metadata) <- sc_metadata$barcode
     pData(sc) <- sc_metadata
@@ -410,29 +414,29 @@ cellT <- function(cells) {
 grabMeta <- function(sc) {
   if (inherits(x=sc, what ="Seurat")) {
     meta <- data.frame(sc[[]], slot(sc, "active.ident"))
-    if ("cluster" %in% colnames(meta)) {
-      colnames(meta)[length(meta)] <- "cluster.active.ident"
-    } else {
-      colnames(meta)[length(meta)] <- "cluster"
-    }
+    # if ("cluster" %in% colnames(meta)) {
+    #   colnames(meta)[length(meta)] <- "cluster.active.ident"
+    # } else {
+    #   colnames(meta)[length(meta)] <- "cluster"
+    # }
   }
   else if (inherits(x=sc, what ="ExpressionSet")){
     meta <- pData(sc)
-    if ("cluster" %in% colnames(meta)) {
-      colnames(meta)[length(meta)] <- "cluster.active.ident"
-    } else {
-      colnames(meta)[length(meta)] <- "cluster"
-    }
+    # if ("cluster" %in% colnames(meta)) {
+    #   colnames(meta)[length(meta)] <- "cluster.active.ident"
+    # } else {
+    #   colnames(meta)[length(meta)] <- "cluster"
+    # }
   }
   else if (inherits(x=sc, what ="SummarizedExperiment")){
     meta <- data.frame(colData(sc))
     rownames(meta) <- sc@colData@rownames
     clu <- which(colnames(meta) == "ident")
-    if ("cluster" %in% colnames(meta)) {
-      colnames(meta)[clu] <- "cluster.active.idents"
-    } else {
-      colnames(meta)[clu] <- "cluster"
-    }
+    # if ("cluster" %in% colnames(meta)) {
+    #   colnames(meta)[clu] <- "cluster.active.idents"
+    # } else {
+    #   colnames(meta)[clu] <- "cluster"
+    # }
   }
   return(meta)
 }
