@@ -39,6 +39,7 @@ getTCR <- function (vdj_dir, filteredcontigs = TRUE, removeNA = FALSE, removeMul
   }
 
   contig_file <- read.csv(contig_file_path)
+  contig_file <- contig_file[!is.na(contig_file$exact_subclonotype_id),]
   df <- contig_file %>% arrange(desc(chain),raw_consensus_id) %>%
     group_by(barcode) %>%
     summarise(chain = paste(chain,collapse = ";"), v_gene = paste(v_gene,collapse = ";"), d_gene = paste(d_gene,collapse = ";"),
