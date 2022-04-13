@@ -25,12 +25,14 @@ plot_heatmap_clonotypes(
 
 \item{group_by}{What to color points by, either "UMI_sum", or meta.data or pData column name, ignored if gene is provided}
 
-\item{ntop}{the number of top clonotypes}
+\item{ntop}{the number of top clonotypes to return}
 
 \item{Count_limit}{count limit for plot legend}
 }
 \description{
-Visual the clonotype expansion in an heatmap
+Visualize clonal expansion by heatmap. Default shows the clonal expansion of the top 20 unique clonotypes across all of a grouping variable,
+or the number of clones of the top 20 clonotypes per each facet by multiple grouping variables
+Bottom row annotation shows the total number of clones in each grouping variable
 }
 \examples{
 plot_heatmap_clonotypes(pfizer, clonotype_by = "CTaa", patient_by = "Patient", sample_by = "Sample") # ClonotypeIDs not listed, as not directly comparable across different patients

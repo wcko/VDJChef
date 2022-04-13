@@ -116,14 +116,15 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
 
 #' get_topclonotypes
 #'
-#' Get top clonotypes categorized by a column in metadata
+#' Return a table of clonal expansion. Default shows the clonal expansion of the top 20 unique clonotypes across all of a grouping variable,
+#' or the number of clones of the top 20 clonotypes per each facet by multiple grouping variables
 #'
 #' @param input Seurat Object or ExpressionSet
 #' @param clonotype_by meta.data or pData column name for clonotype ID's
 #' @param patient_by meta.data or pData column name for patient
 #' @param sample_by meta.data or pData column name for sample
 #' @param group_by meta.data or pData column name for grouping specific clonotype frequencies
-#' @param ntop the number of top clonotypes
+#' @param ntop the number of top clonotypes to return
 #' @param split_by split tables by
 #' @param chain_type subset table to chain type
 #'
@@ -183,17 +184,19 @@ get_topclonotypes <- function(input, clonotype_by, group_by = NULL, sample_by = 
 
 #' plot_heatmap_clonotypes
 #'
-#' Visual the clonotype expansion in an heatmap
+#' Visualize clonal expansion by heatmap. Default shows the clonal expansion of the top 20 unique clonotypes across all of a grouping variable,
+#' or the number of clones of the top 20 clonotypes per each facet by multiple grouping variables
+#' Bottom row annotation shows the total number of clones in each grouping variable
 #'
 #' @param input Seurat Object or ExpressionSet
 #' @param clonotype_by meta.data or pData column name for clonotype ID's
 #' @param patient_by meta.data or pData column name for patient
 #' @param sample_by meta.data or pData column name for sample
 #' @param group_by What to color points by, either "UMI_sum", or meta.data or pData column name, ignored if gene is provided
-#' @param ntop the number of top clonotypes
+#' @param ntop the number of top clonotypes to return
 #' @param Count_limit count limit for plot legend
 #'
-#' @importFrom ComplexHeatmap Heatmap
+#' @importFrom ComplexHeatmap Heatmap columnAnnotation anno_text
 #' @importFrom circlize colorRamp2
 #' @import grid
 #'
@@ -261,7 +264,5 @@ plot_heatmap_clonotypes <- function(input, clonotype_by, patient_by = NULL, samp
                            cell_fun = function(j, i, x, y, width, height, fill) {
                              grid.text(paste0(sprintf("%.0f", clonotypes_vs_color[i, j])), x, y, gp = gpar(fontsize = 10))
                            })
-#would make the faceting border thicker to emphasize that it's different clones for each of the boxes. Comparisons can only be made within the box.
-
   return(count_heatmap)
 }

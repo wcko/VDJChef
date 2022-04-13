@@ -26,14 +26,15 @@ get_topclonotypes(
 
 \item{patient_by}{meta.data or pData column name for patient}
 
-\item{ntop}{the number of top clonotypes}
+\item{ntop}{the number of top clonotypes to return}
 
 \item{split_by}{split tables by}
 
 \item{chain_type}{subset table to chain type}
 }
 \description{
-Get top clonotypes categorized by a column in metadata
+Return a table of clonal expansion. Default shows the clonal expansion of the top 20 unique clonotypes across all of a grouping variable,
+or the number of clones of the top 20 clonotypes per each facet by multiple grouping variables
 }
 \examples{
 get_topclonotypes(pfizer, clonotype_by = "CTaa", patient_by = "Patient", sample_by = "Sample") # ClonotypeIDs not listed, as not directly comparable across different patients
