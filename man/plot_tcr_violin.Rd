@@ -11,9 +11,9 @@ plot_tcr_violin(
   clone,
   clonotype_id = "clonotype_id",
   threshold = 5,
+  facet_by,
   log_scale = F,
   colors = NULL,
-  facet_by = NULL,
   spread = NULL,
   jitter_pts = T,
   plot_mean = T,
@@ -34,17 +34,18 @@ plot_tcr_violin(
 
 \item{gene}{Feature for which to plot the expression level. For Seurat Object, ensure the correct DefaultAssay is specified prior to running this function. May access gene data through "assayname_GENE" e.g. "rna_CD8A", "adt_CD8", uses Seurat::FetchData()}
 
-\item{clone}{specific name of expanded clone of interest to compare to the non-expanded clones}
+\item{clone}{specific name of expanded clone of interest to compare to the non-expanded clones.}
 
 \item{clonotype_id}{meta.data or pData column name for clonotype ID's}
 
-\item{threshold}{number of clones above which is considered expanded (e.g. for n=5, 5 clones and below are Non-expanded)}
+\item{threshold}{number of clones above which is considered expanded (e.g. for n=5, 5 clones and below are Non-expanded).
+Ensure threshold is less than the number of expanded clones for @param clone}
+
+\item{facet_by}{a vector with one or two meta.data or pData column variables. If two, the first variable as columns and the second as rows.}
 
 \item{log_scale}{If true, transform UMIs by log2(UMI + 1).}
 
 \item{colors}{What colors to utilize for categorical data. Be sure it is of the proper length.}
-
-\item{facet_by}{a vector with one or two meta.data or pData column variables. If two, the first variable as columns and the second as rows.}
 
 \item{spread}{e.g. Healthy category is unique in Disease and Skin. To use Healthy only as skin but not Disease, that is adding Healthy skin to each disease, spread = c("Disease", "Healthy").}
 

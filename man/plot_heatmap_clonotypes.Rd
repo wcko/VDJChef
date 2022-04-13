@@ -7,23 +7,23 @@
 plot_heatmap_clonotypes(
   input,
   clonotype_by,
-  group_by = NULL,
-  sample_by = NULL,
   patient_by = NULL,
+  sample_by = NULL,
+  group_by = NULL,
   ntop = 20,
   Count_limit = NULL
 )
 }
 \arguments{
-\item{input}{ExpressionSet or Seurat Object}
+\item{input}{Seurat Object or ExpressionSet}
 
-\item{clonotype_by}{the label of the column in metadata that defines clonotypes}
+\item{clonotype_by}{meta.data or pData column name for clonotype ID's}
 
-\item{group_by}{What to color points by, either "UMI_sum", or pData categorial variable, ignored if gene is provided}
+\item{patient_by}{meta.data or pData column name for patient}
 
-\item{sample_by}{name of the sample metadata variable}
+\item{sample_by}{meta.data or pData column name for sample}
 
-\item{patient_by}{name of the patient metadata variable}
+\item{group_by}{What to color points by, either "UMI_sum", or meta.data or pData column name, ignored if gene is provided}
 
 \item{ntop}{the number of top clonotypes}
 
@@ -31,4 +31,10 @@ plot_heatmap_clonotypes(
 }
 \description{
 Visual the clonotype expansion in an heatmap
+}
+\examples{
+plot_heatmap_clonotypes(pfizer, clonotype_by = "CTaa", patient_by = "Patient", sample_by = "Sample") # ClonotypeIDs not listed, as not directly comparable across different patients
+plot_heatmap_clonotypes(pfizer, clonotype_by = "CTaa", group_by = "Sample_Type")
+plot_heatmap_clonotypes(pfizer[,which(pData(pfizer)$Patient=="VB234")], clonotype_by = "CTaa", group_by="Sample")
+
 }

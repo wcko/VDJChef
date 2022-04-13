@@ -3,9 +3,10 @@
 #' @param input SatijaLab’s Seurat Class, with normalized expression values in assay data slot, and TCR Clonotype ID's in meta.data. Or input Bioconductor’s ExpressionSet Class with (not log) values in exprs().
 #' @param title Title of the graph. Would be the gene name followed by clone's ID if not specified
 #' @param gene Feature for which to plot the expression level. For Seurat Object, ensure the correct DefaultAssay is specified prior to running this function. May access gene data through "assayname_GENE" e.g. "rna_CD8A", "adt_CD8", uses Seurat::FetchData()
-#' @param clone specific name of expanded clone of interest to compare to the non-expanded clones
+#' @param clone specific name of expanded clone of interest to compare to the non-expanded clones.
 #' @param clonotype_id meta.data or pData column name for clonotype ID's
-#' @param threshold number of clones above which is considered expanded (e.g. for n=5, 5 clones and below are Non-expanded)
+#' @param threshold number of clones above which is considered expanded (e.g. for n=5, 5 clones and below are Non-expanded).
+#' Ensure threshold is less than the number of expanded clones for @param clone
 #' @param log_scale If true, transform UMIs by log2(UMI + 1).
 #' @param colors What colors to utilize for categorical data. Be sure it is of the proper length.
 #' @param facet_by a vector with one or two meta.data or pData column variables. If two, the first variable as columns and the second as rows.
@@ -22,11 +23,11 @@
 #' color_by is set to display Expanded and Non-expanded clones
 #' @examples
 #' plot_tcr_violin(ex_sc, gene = "rna_GNLY", clone = "clonotype1_SJS001", facet_by = c("hash.ID"))
-#' plot_tcr_violin(ex_sc, gene = "CD8A", clone = "CAAGAGFGNVLHC_CASSIGRWNGYTF", clonotype_id="CTaa", facet_by = c("Patient","Sample_Subtype), threshold=1)
+#' plot_tcr_violin(ex_sc, gene = "CD8A", clone = "CAAGAGFGNVLHC_CASSIGRWNGYTF", clonotype_id="CTaa", threshold=1, facet_by = c("Patient","Sample_Subtype) )
 #' plot_tcr_violin(ex_sc, gene = "GNLY", clone = "clonotype1_SJS001", threshold=1, facet_by = c("hash.ID", "CellTypeSuperCluster"), log_scale = F)
 #' @export
-plot_tcr_violin <- function (input, title = "", gene, clone, clonotype_id="clonotype_id", threshold=5, log_scale = F,
-                         colors = NULL, facet_by = NULL, spread = NULL, jitter_pts = T,
+plot_tcr_violin <- function (input, title = "", gene, clone, clonotype_id="clonotype_id", threshold=5, facet_by, log_scale = F,
+                         colors = NULL, spread = NULL, jitter_pts = T,
                          plot_mean = T, plot_mean_dot_size = 2, size = 1, sig = 3, number_labels = T,
                          text_sizes = c(20, 10, 5, 10, 5, 5, 2), alpha = 0.5, theme = "classic",
                          contour_line_width = 0.3)
@@ -35,9 +36,9 @@ plot_tcr_violin <- function (input, title = "", gene, clone, clonotype_id="clono
   if (class(input) == "Seurat") {
     df <- input@meta.data[,colnames(input@meta.data) %in% c(clonotype_id, facet_by), drop = F]
     colnames(df)[which(colnames(df)==clonotype_id)] <- "clonotype_id"
-    clonotype_id <- "clonotype_id"
     df <- df[!is.na(df$clonotype_id),]
-    colnames(input@meta.data)[which(colnames(input@meta.data)=="clonotype_id")] <- "clonotype_id"
+    # colnames(input@meta.data)[which(colnames(input@meta.data)==clonotype_id)] <- "clonotype_id"
+    clonotype_id <- "clonotype_id"
     clonotypedf <- df %>%
       count(clonotype_id) %>%
       mutate(expanded_status = ifelse(n > threshold, "expanded", "non-expanded")) %>%
@@ -47,10 +48,17 @@ plot_tcr_violin <- function (input, title = "", gene, clone, clonotype_id="clono
     df.sub <- df[df$clonotype_id==clone,]
     df.sub <- bind_rows(df.sub, df[df$expanded_status=='non-expanded',])
     df <- df.sub
+    clone.bak <- clone
+    clone <- unique(df[which(df$clonotype_id=="clonotype1"),]$expanded_status)
+    stopifnot(clone == "expanded")
+    clone <- clone.bak
     df <- bind_cols(df, raw=FetchData(input,gene,cells=df$barcodes)[,1])
+    # if error of duplicate barcodes, output statement: likely because the clone that is passed in is actually NOT expanded per the threshold
+    # Error in (function (..., row.names = NULL, check.rows = FALSE, check.names = TRUE
+    # duplicate row.names: CGTAGCGCAACTTGAC-1, TTTACTGCAGGGTACA-1
   }
   else if (class(input) == "ExpressionSet") {
-    df <- pData(input)[, colnames(pData(input)) %in% c(clonotype_id, facet_by), drop = F]
+    df <- pData(input)[, colnames(pData(input)) %in% c(gene, clonotype_id, facet_by), drop = F]
     colnames(df)[which(colnames(df)==clonotype_id)] <- "clonotype_id"
     clonotype_id <- "clonotype_id"
     df <- df[!is.na(df$clonotype_id),]

@@ -16,15 +16,15 @@ get_topclonotypes(
 )
 }
 \arguments{
-\item{input}{ExpressionSet or Seurat Object}
+\item{input}{Seurat Object or ExpressionSet}
 
-\item{clonotype_by}{the label of the column in metadata that defines clonotypes}
+\item{clonotype_by}{meta.data or pData column name for clonotype ID's}
 
-\item{group_by}{what to group clonotypes frequencies}
+\item{group_by}{meta.data or pData column name for grouping specific clonotype frequencies}
 
-\item{sample_by}{name of the sample metadata variable}
+\item{sample_by}{meta.data or pData column name for sample}
 
-\item{patient_by}{name of the patient metadata variable}
+\item{patient_by}{meta.data or pData column name for patient}
 
 \item{ntop}{the number of top clonotypes}
 
@@ -34,4 +34,10 @@ get_topclonotypes(
 }
 \description{
 Get top clonotypes categorized by a column in metadata
+}
+\examples{
+get_topclonotypes(pfizer, clonotype_by = "CTaa", patient_by = "Patient", sample_by = "Sample") # ClonotypeIDs not listed, as not directly comparable across different patients
+get_topclonotypes(pfizer, clonotype_by = "CTaa", group_by = "Sample")
+get_topclonotypes(pfizer[,which(pData(pfizer)$Patient=="VB234")], clonotype_by = "CTaa", group_by="Sample")
+
 }
