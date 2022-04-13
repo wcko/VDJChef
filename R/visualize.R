@@ -42,6 +42,7 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
   } else {
     print("Input is neither a Seurat or ExpressionSet Object")
   }
+  tmp_clonotype <- tmp[tmp[[clonotype_by]] == clonotype_id,]
 
   # shuffle ?
   if (shuffle) {
@@ -249,6 +250,7 @@ plot_heatmap_clonotypes <- function(input, clonotype_by, patient_by = NULL, samp
   }
 
   # heatmap auxiliary tools
+  clonotypes_vs_color[is.na(clonotypes_vs_color)] <- 0
   col_fun = colorRamp2(c(max(clonotypes_vs_color), 0), c("red","white"))
   if(!is.null(Count_limit))
     col_fun = colorRamp2(c(Count_limit, 0), c("red","white"))
