@@ -89,7 +89,7 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
     g <- g + scale_color_gradientn(colours = c("gray", "blue", "red", "yellow"))
   }
   else {
-    color_by_freq <- table(droplevels(tmp_clonotype[, color_by]))
+    color_by_freq <- table(droplevels(factor(tmp_clonotype[, color_by])))
     color_by_freq <- color_by_freq[order(color_by_freq, decreasing = TRUE)]
     label_length <- sapply(names(color_by_freq), nchar)
     label_sep <- max(label_length) - label_length + 2
