@@ -42,7 +42,7 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
   } else {
     print("Input is neither a Seurat or ExpressionSet Object")
   }
-  tmp_clonotype <- tmp[tmp[[clonotype_by]] == clonotype_id,]
+  tmp_clonotype <- tmp[which(tmp[[clonotype_by]] == clonotype_id),]
 
   # shuffle ?
   if (shuffle) {
