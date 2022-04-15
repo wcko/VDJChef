@@ -42,6 +42,7 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
   } else {
     print("Input is neither a Seurat or ExpressionSet Object")
   }
+  tmp_clonotype <- tmp[which(tmp[[clonotype_by]] == clonotype_id),]
 
   # shuffle ?
   if (shuffle) {
@@ -88,7 +89,7 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
     g <- g + scale_color_gradientn(colours = c("gray", "blue", "red", "yellow"))
   }
   else {
-    color_by_freq <- table(droplevels(tmp_clonotype[, color_by]))
+    color_by_freq <- table(droplevels(factor(tmp_clonotype[, color_by])))
     color_by_freq <- color_by_freq[order(color_by_freq, decreasing = TRUE)]
     label_length <- sapply(names(color_by_freq), nchar)
     label_sep <- max(label_length) - label_length + 2
@@ -116,20 +117,25 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
 
 #' get_topclonotypes
 #'
-#' Get top clonotypes categorized by a column in metadata
+#' Return a table of clonal expansion. Default shows the clonal expansion of the top 20 unique clonotypes across all of a grouping variable,
+#' or the number of clones of the top 20 clonotypes per each facet by multiple grouping variables
 #'
-#' @param input ExpressionSet or Seurat Object
-#' @param clonotype_by the label of the column in metadata that defines clonotypes
-#' @param group_by what to group clonotypes frequencies
-#' @param sample_by name of the sample metadata variable
-#' @param patient_by name of the patient metadata variable
-#' @param ntop the number of top clonotypes
+#' @param input Seurat Object or ExpressionSet
+#' @param clonotype_by meta.data or pData column name for clonotype ID's
+#' @param patient_by meta.data or pData column name for patient
+#' @param sample_by meta.data or pData column name for sample
+#' @param group_by meta.data or pData column name for grouping specific clonotype frequencies
+#' @param ntop the number of top clonotypes to return
 #' @param split_by split tables by
 #' @param chain_type subset table to chain type
 #'
 #' @export
 #'
 #' @examples
+#' get_topclonotypes(pfizer, clonotype_by = "CTaa", patient_by = "Patient", sample_by = "Sample") # ClonotypeIDs not listed, as not directly comparable across different patients
+#' get_topclonotypes(pfizer, clonotype_by = "CTaa", group_by = "Sample")
+#' get_topclonotypes(pfizer[,which(pData(pfizer)$Patient=="VB234")], clonotype_by = "CTaa", group_by="Sample")
+#'
 get_topclonotypes <- function(input, clonotype_by, group_by = NULL, sample_by = NULL, patient_by = NULL, ntop = 20, split_by = NULL, chain_type = NULL){
 
   # get metadata, specific to clonotypes
@@ -179,25 +185,30 @@ get_topclonotypes <- function(input, clonotype_by, group_by = NULL, sample_by = 
 
 #' plot_heatmap_clonotypes
 #'
-#' Visual the clonotype expansion in an heatmap
+#' Visualize clonal expansion by heatmap. Default shows the clonal expansion of the top 20 unique clonotypes across all of a grouping variable,
+#' or the number of clones of the top 20 clonotypes per each facet by multiple grouping variables
+#' Bottom row annotation shows the total number of clones in each grouping variable
 #'
-#' @param input ExpressionSet or Seurat Object
-#' @param clonotype_by the label of the column in metadata that defines clonotypes
-#' @param group_by What to color points by, either "UMI_sum", or pData categorial variable, ignored if gene is provided
-#' @param sample_by name of the sample metadata variable
-#' @param patient_by name of the patient metadata variable
-#' @param ntop the number of top clonotypes
+#' @param input Seurat Object or ExpressionSet
+#' @param clonotype_by meta.data or pData column name for clonotype ID's
+#' @param patient_by meta.data or pData column name for patient
+#' @param sample_by meta.data or pData column name for sample
+#' @param group_by What to color points by, either "UMI_sum", or meta.data or pData column name, ignored if gene is provided
+#' @param ntop the number of top clonotypes to return
 #' @param Count_limit count limit for plot legend
 #'
-#' @importFrom ComplexHeatmap Heatmap
+#' @importFrom ComplexHeatmap Heatmap columnAnnotation anno_text
 #' @importFrom circlize colorRamp2
 #' @import grid
 #'
 #' @export
 #'
 #' @examples
-plot_heatmap_clonotypes <- function(input, clonotype_by, group_by = NULL, sample_by = NULL, patient_by = NULL, ntop = 20, Count_limit = NULL){
-
+#' plot_heatmap_clonotypes(pfizer, clonotype_by = "CTaa", patient_by = "Patient", sample_by = "Sample") # ClonotypeIDs not listed, as not directly comparable across different patients
+#' plot_heatmap_clonotypes(pfizer, clonotype_by = "CTaa", group_by = "Sample_Type")
+#' plot_heatmap_clonotypes(pfizer[,which(pData(pfizer)$Patient=="VB234")], clonotype_by = "CTaa", group_by="Sample")
+#'
+plot_heatmap_clonotypes <- function(input, clonotype_by, patient_by = NULL, sample_by = NULL, group_by = NULL,  ntop = 20, Count_limit = NULL) {
   # get metadata, specific to clonotypes
   if(class(input) == "Seurat"){
     tmp <- input@meta.data
@@ -208,14 +219,19 @@ plot_heatmap_clonotypes <- function(input, clonotype_by, group_by = NULL, sample
   }
   tmp <- tmp[!is.na(tmp[[clonotype_by]]),]
 
+  totalclones <- NULL
   # data for heatmap
-  if(is.null(patient_by) || is.null(patient_by)){
+  if(is.null(patient_by) || is.null(sample_by)){
+    stopifnot(!is.null(group_by))
     clonotypes_vs_color <- table(tmp[[clonotype_by]], tmp[[group_by]])
     clonotypes_vs_color <- data.frame(rbind(clonotypes_vs_color))
+    totalclones <- colSums(clonotypes_vs_color)
     clonotypes_vs_color$Total <- rowSums(clonotypes_vs_color)
     clonotypes_vs_color <- clonotypes_vs_color[order(clonotypes_vs_color$Total, decreasing = TRUE)[1:ntop],-length(clonotypes_vs_color), drop = FALSE]
     heatmap_split <- NULL
-    } else {
+    }
+  else {
+    tmp.bak <- tmp
     tmp <- split(tmp, list(tmp[[patient_by]]))
     clonotypes_vs_color <- lapply(tmp, function(x){
       x <- table(x[[clonotype_by]], x[[sample_by]])
@@ -228,9 +244,13 @@ plot_heatmap_clonotypes <- function(input, clonotype_by, group_by = NULL, sample
     clonotypes_vs_color <- do.call(cbind, clonotypes_vs_color)
     rownames(clonotypes_vs_color) <- NULL
     colnames(clonotypes_vs_color) <- colnames_clono
+    totalclones <- table(tmp.bak[[clonotype_by]], tmp.bak[[sample_by]])
+    totalclones <- data.frame(rbind(totalclones))
+    totalclones <- colSums(totalclones)
   }
 
   # heatmap auxiliary tools
+  clonotypes_vs_color[is.na(clonotypes_vs_color)] <- 0
   col_fun = colorRamp2(c(max(clonotypes_vs_color), 0), c("red","white"))
   if(!is.null(Count_limit))
     col_fun = colorRamp2(c(Count_limit, 0), c("red","white"))
@@ -239,11 +259,12 @@ plot_heatmap_clonotypes <- function(input, clonotype_by, group_by = NULL, sample
   count_heatmap <- Heatmap(clonotypes_vs_color, col = col_fun,
                            row_names_side = "left", column_names_side = "top",
                            column_names_rot = 45, cluster_columns = FALSE, cluster_rows = FALSE,
+                           bottom_annotation =
+                             columnAnnotation(Total_Clones_in_Sample = anno_text(totalclones, gp = gpar(fontsize=10), rot=0, just = "top", location=1)),
                            heatmap_legend_param = list(title = ""), border = TRUE, column_split = heatmap_split,
                            column_names_gp = grid::gpar(fontsize = 8), row_names_gp = grid::gpar(fontsize = 8),
                            cell_fun = function(j, i, x, y, width, height, fill) {
                              grid.text(paste0(sprintf("%.0f", clonotypes_vs_color[i, j])), x, y, gp = gpar(fontsize = 10))
                            })
-
   return(count_heatmap)
 }
