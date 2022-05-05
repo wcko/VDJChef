@@ -194,6 +194,8 @@ get_topclonotypes <- function(input, clonotype_by, group_by = NULL, sample_by = 
 #' @param patient_by meta.data or pData column name for patient
 #' @param sample_by meta.data or pData column name for sample
 #' @param group_by What to color points by, either "UMI_sum", or meta.data or pData column name, ignored if gene is provided
+#' @param sort_by The metadata column for sorting
+#' @param sort_id The value in the metadata column for sorting
 #' @param ntop the number of top clonotypes to return
 #' @param Count_limit count limit for plot legend
 #'
@@ -208,7 +210,7 @@ get_topclonotypes <- function(input, clonotype_by, group_by = NULL, sample_by = 
 #' plot_heatmap_clonotypes(pfizer, clonotype_by = "CTaa", group_by = "Sample_Type")
 #' plot_heatmap_clonotypes(pfizer[,which(pData(pfizer)$Patient=="VB234")], clonotype_by = "CTaa", group_by="Sample")
 #'
-plot_heatmap_clonotypes <- function(input, clonotype_by, patient_by = NULL, sample_by = NULL, group_by = NULL,  ntop = 20, Count_limit = NULL) {
+plot_heatmap_clonotypes <- function(input, clonotype_by, patient_by = NULL, sample_by = NULL, group_by = NULL, sort_by = NULL, sort_id = NULL, ntop = 20, Count_limit = NULL) {
   # get metadata, specific to clonotypes
   if(class(input) == "Seurat"){
     tmp <- input@meta.data
@@ -226,7 +228,6 @@ plot_heatmap_clonotypes <- function(input, clonotype_by, patient_by = NULL, samp
     clonotypes_vs_color <- table(tmp[[clonotype_by]], tmp[[group_by]])
     clonotypes_vs_color <- data.frame(rbind(clonotypes_vs_color))
     totalclones <- colSums(clonotypes_vs_color)
-    clonotypes_vs_color$Total <- rowSums(clonotypes_vs_color)
     clonotypes_vs_color <- clonotypes_vs_color[order(clonotypes_vs_color$Total, decreasing = TRUE)[1:ntop],-length(clonotypes_vs_color), drop = FALSE]
     heatmap_split <- NULL
     }
@@ -234,9 +235,19 @@ plot_heatmap_clonotypes <- function(input, clonotype_by, patient_by = NULL, samp
     tmp.bak <- tmp
     tmp <- split(tmp, list(tmp[[patient_by]]))
     clonotypes_vs_color <- lapply(tmp, function(x){
-      x <- table(x[[clonotype_by]], x[[sample_by]])
-      x <- data.frame(rbind(x))
-      x$Total <- rowSums(x)
+      if(is.null(sort_by) || is.null(sort_id)){
+        x <- table(x[[clonotype_by]], x[[sample_by]])
+        x <- data.frame(rbind(x))
+        x$Total <- rowSums(x)
+      } else {
+        sorter_subset <- unique(x[[sample_by]][x[[sort_by]]==sort_id])
+        print(sorter_subset)
+        x <- table(x[[clonotype_by]], x[[sample_by]])
+        x <- data.frame(rbind(x))
+        print(head(x[,sorter_subset, drop = FALSE]))
+        if(length(sorter_subset) > 0) x$Total <- rowSums(x[,sorter_subset, drop = FALSE])
+        else x$Total <- rowSums(x)
+      }
       x <- x[order(x$Total, decreasing = TRUE)[1:ntop],-ncol(x), drop = FALSE]
     })
     heatmap_split <- rep(names(clonotypes_vs_color), sapply(clonotypes_vs_color, ncol))
