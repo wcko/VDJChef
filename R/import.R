@@ -39,15 +39,12 @@ getTCR <- function (vdj_dir, filteredcontigs = TRUE, removeNA = FALSE, removeMul
   }
 
   contig_file <- read.csv(contig_file_path)
-  contig_file <- contig_file[!is.na(contig_file$exact_subclonotype_id),]
   df <- contig_file %>% arrange(desc(chain),raw_consensus_id) %>%
     group_by(barcode) %>%
     summarise(chain = paste(chain,collapse = ";"), v_gene = paste(v_gene,collapse = ";"), d_gene = paste(d_gene,collapse = ";"),
               j_gene = paste(j_gene,collapse = ";"), c_gene = paste(c_gene,collapse = ";"), full_length = paste(full_length,collapse = ";"),
               productive = paste(productive, collapse = ";"), cdr3 = paste(cdr3,collapse = ";"), cdr3_nt = paste(cdr3_nt,collapse = ";"),
-              reads = paste(reads,collapse = ";"), umis = paste(umis,collapse = ";"), raw_clonotype_id) %>%
-    rename(clonotype_id = raw_clonotype_id) %>%
-    distinct
+              reads = paste(reads,collapse = ";"), umis = paste(umis,collapse = ";"), clonotype_id = raw_clonotype_id[1])
 
   if (exists("clonotypeinfo_file_path")) {
     clonotypeinfo <- read.csv(clonotypeinfo_file_path)
