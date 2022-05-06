@@ -29,13 +29,19 @@ getTCR <- function (vdj_dir, filteredcontigs = TRUE, removeNA = FALSE, removeMul
   vdj_files <- list.files(vdj_path)
   if ("TRUE" %in% grepl("filtered_contig_annotations.csv",vdj_files)) {
     contig_file_path <- paste0(vdj_path,vdj_files[grep("filtered_contig_annotations",vdj_files)])
+    print("filtered_contig_annotations.csv present in directory, using this file for getTCR()")
   }
   else {
     contig_file_path <- paste0(vdj_path,vdj_files[grep("all_contig_annotations",vdj_files)])
+    print("filtered_contig_annotations.csv not found in directory, using all_contig_annotations.csv for getTCR()")
     #print statement that no filtered contig file found, using all contigs
   }
   if ("TRUE" %in% grepl("clonotypes.csv",vdj_files)) {
     clonotypeinfo_file_path <- paste0(vdj_path,vdj_files[grep("clonotypes.csv",vdj_files)])
+    print("clonotypes.csv provided in directory, using this file for getTCR()")
+  }
+  else {
+    print("clonotypes.csv not found in directory, clonotypes.csv meta data will not be added to output")
   }
 
   contig_file <- read.csv(contig_file_path)
