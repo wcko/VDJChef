@@ -230,8 +230,7 @@ plot_heatmap_clonotypes <- function(input, clonotype_by, patient_by = NULL, samp
     totalclones <- colSums(clonotypes_vs_color)
     clonotypes_vs_color <- clonotypes_vs_color[order(clonotypes_vs_color$Total, decreasing = TRUE)[1:ntop],-length(clonotypes_vs_color), drop = FALSE]
     heatmap_split <- NULL
-    }
-  else {
+  } else {
     tmp.bak <- tmp
     tmp <- split(tmp, list(tmp[[patient_by]]))
     clonotypes_vs_color <- lapply(tmp, function(x){
