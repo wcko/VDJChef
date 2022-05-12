@@ -54,6 +54,7 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
 
   # initial plot
   g <- ggplot(tmp_clonotype)
+  print(tmp_clonotype)
   if (theme == "bw") {
     g <- g + theme_bw()
   }
