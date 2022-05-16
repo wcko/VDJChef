@@ -122,9 +122,9 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
 #'
 #' @param input Seurat Object or ExpressionSet
 #' @param clonotype_by meta.data or pData column name for clonotype ID's
-#' @param patient_by meta.data or pData column name for patient
-#' @param sample_by meta.data or pData column name for sample
-#' @param group_by meta.data or pData column name for grouping specific clonotype frequencies
+#' @param group_by meta.data or pData column names for grouping specific clonotype frequencies, if multiple columns are entered, columns are merged by paste
+#' @param patient_by meta.data or pData column name for patient, ignored if split_by is not NULL
+#' @param sample_by meta.data or pData column name for sample, ignored if split_by is not NULL
 #' @param ntop the number of top clonotypes to return
 #' @param split_by split tables by
 #' @param chain_type subset table to chain type
@@ -136,7 +136,7 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
 #' get_topclonotypes(pfizer, clonotype_by = "CTaa", group_by = "Sample")
 #' get_topclonotypes(pfizer[,which(pData(pfizer)$Patient=="VB234")], clonotype_by = "CTaa", group_by="Sample")
 #'
-get_topclonotypes <- function(input, clonotype_by, group_by = NULL, sample_by = NULL, patient_by = NULL, ntop = 20, split_by = NULL, chain_type = NULL){
+get_topclonotypes <- function(input, clonotype_by, group_by = NULL, patient_by = NULL, sample_by = NULL, ntop = 20, split_by = NULL, chain_type = NULL){
 
   # get metadata, specific to clonotypes
   if(class(input) == "Seurat"){
@@ -151,20 +151,32 @@ get_topclonotypes <- function(input, clonotype_by, group_by = NULL, sample_by = 
   if(!is.null(chain_type))
     tmp <- tmp[tmp[["chain_summary"]]==chain_type,]
 
+
+  # merge two grouping columns into one, do not use more than two grouping variables
+  if(length(group_by) == 1){
+    tmp[["group_clonotype"]] <- tmp[[group_by]]
+  } else if(length(group_by) == 2){
+    tmp[["group_clonotype"]] <- paste(tmp[[group_by[1]]], tmp[[group_by[2]]], sep = "_")
+  } else if(length(group_by) > 2){
+    stop("Using more than 2 grouping columns are not suggested")
+  }
+
   # data for heatmap
   if(is.null(split_by)){
-    if(is.null(patient_by) || is.null(patient_by)){
-      clonotypes_vs_color <- table(tmp[[clonotype_by]], tmp[[group_by]])
+    if(is.null(patient_by) || is.null(sample_by)){
+      clonotypes_vs_color <- table(tmp[[clonotype_by]], tmp[['group_clonotype']])
       clonotypes_vs_color <- data.frame(rbind(clonotypes_vs_color))
       clonotypes_vs_color$Total <- rowSums(clonotypes_vs_color)
-      clonotypes_vs_color <- clonotypes_vs_color[order(clonotypes_vs_color$Total, decreasing = TRUE)[1:ntop],-length(clonotypes_vs_color), drop = FALSE]
+      # clonotypes_vs_color <- clonotypes_vs_color[order(clonotypes_vs_color$Total, decreasing = TRUE)[1:ntop],-length(clonotypes_vs_color), drop = FALSE]
+      clonotypes_vs_color <- clonotypes_vs_color[order(clonotypes_vs_color$Total, decreasing = TRUE)[1:ntop],, drop = FALSE]
     } else {
       tmp <- split(tmp, list(tmp[[patient_by]]))
       clonotypes_vs_color <- lapply(tmp, function(x){
         x <- table(x[[clonotype_by]], x[[sample_by]])
         x <- data.frame(rbind(x))
         x$Total <- rowSums(x)
-        x <- x[order(x$Total, decreasing = TRUE)[1:ntop],-ncol(x), drop = FALSE]
+        # x <- x[order(x$Total, decreasing = TRUE)[1:ntop],-ncol(x), drop = FALSE]
+        x <- x[order(x$Total, decreasing = TRUE)[1:ntop],, drop = FALSE]
       })
       colnames_clono <- unlist(lapply(clonotypes_vs_color, colnames))
       clonotypes_vs_color <- do.call(cbind, clonotypes_vs_color)
@@ -174,10 +186,11 @@ get_topclonotypes <- function(input, clonotype_by, group_by = NULL, sample_by = 
   } else {
     tmp <- split(tmp, list(tmp[[split_by]]))
     clonotypes_vs_color <- lapply(tmp, function(x){
-      x <- table(x[[clonotype_by]], x[[group_by]])
+      x <- table(x[[clonotype_by]], x[['group_clonotype']])
       x <- data.frame(rbind(x))
       x$Total <- rowSums(x)
-      x <- x[order(x$Total, decreasing = TRUE)[1:ntop],-ncol(x), drop = FALSE]
+      # x <- x[order(x$Total, decreasing = TRUE)[1:ntop],-ncol(x), drop = FALSE]
+      x <- x[order(x$Total, decreasing = TRUE)[1:ntop],, drop = FALSE]
     })
   }
   return(clonotypes_vs_color)
