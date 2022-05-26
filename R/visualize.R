@@ -54,7 +54,6 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
 
   # initial plot
   g <- ggplot(tmp_clonotype)
-  print(tmp_clonotype)
   if (theme == "bw") {
     g <- g + theme_bw()
   }
@@ -279,3 +278,41 @@ plot_heatmap_clonotypes <- function(input, clonotype_by, patient_by = NULL, samp
                            })
   return(count_heatmap)
 }
+
+
+
+
+#' VDJ_visualize
+#'
+#' Visualize V, D or J gene frequencies across Patients or Samples in a bar graph.
+#'
+#' @param df
+#' @param gene
+#' @param chain
+#' @param plot
+#' @param y.axis
+#' @param order
+#' @param scale
+#' @param split.by
+#' @param exportTable
+#'
+#' @return
+#' @export
+#'
+#' @examples
+VDJ_visualize <- function (df, gene = "v_gene", chain = "TRA", plot = "bar", y.axis = "sample",
+                        order = "gene", scale = TRUE, split.by = NULL, exportTable = FALSE){
+
+
+  #### subset the seurat object with only the 3 meta.data columns we want
+  df2 <- df@meta.data[ , c(gene, "Sample", "Patient", "Sample_Subtype")]
+
+
+
+}
+
+
+
+
+
+
