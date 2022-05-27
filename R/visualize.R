@@ -356,7 +356,7 @@ VDJ_visualize <- function (df, gene = "v_gene", chain = "TRA", plot = "bar", y.a
     row.patient <- df3.row$Patient
     row.vgene <- df3.row[[gene]]
     row.sample <- df3.row$Sample
-    row.gene_freq <- df2 %>% filter(Sample == row.sample & Patient == row.patient & gene == row.vgene) %>% dplyr::select(gene_freq) %>% unlist() %>% unique() %>% as.numeric()
+    row.gene_freq <- df2 %>% filter(Sample == row.sample & Patient == row.patient & (!!as.name(gene)) == row.vgene) %>% dplyr::select(gene_freq) %>% unlist() %>% unique() %>% as.numeric()
     df3$gene_freq[i] <- row.gene_freq
   }
 
@@ -369,7 +369,7 @@ VDJ_visualize <- function (df, gene = "v_gene", chain = "TRA", plot = "bar", y.a
   df4 <- df3[, c(gene, "Sample","Patient", "sd", "mean")]
   df4 <- na.omit(df4)
 
-   ggplot2::ggplot(df4, aes(x = v_gene, y = mean)) + geom_bar(stat = "identity") +
+   ggplot2::ggplot(df4, aes(x = !!as.name(gene), y = mean)) + geom_bar(stat = "identity") +
     geom_errorbar(aes(ymin = mean, ymax = mean + sd),
                   width = 0.2, position = position_dodge(0.9)) +
     theme_classic() + theme(axis.title.x = element_blank(),
