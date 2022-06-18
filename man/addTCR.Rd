@@ -9,28 +9,40 @@ addTCR(exsc, tcrmeta)
 \arguments{
 \item{exsc}{SatijaLab’s Seurat Class or Bioconductor’s ExpressionSet Class}
 
-\item{tcrmeta}{TCR clonotype metadata with rownames as barcodes (i.e. output of function getTCR() ). Barcodes must match that of @param exsc}
+\item{tcrmeta}{TCR clonotype metadata with rownames as barcodes (i.e. output of function "getTCR"). Barcodes must match that of @param exsc}
 }
 \value{
 Seurat Object or ExpressionSet with metadata updated with TCR clonotypes
 }
 \description{
-addTCR
+This functions adds a TCR contig metadata to existing Seurat or ExpressionSet object.
 }
 \details{
 Reads output directory of Cellranger VDJ (or multi) to output clonotype metadata (TCR chains, VDJ genes, reads, umis).
-If extra info on T cell metadata is available (clonotypes.csv), it will be joined to the clonotype metadata.
+If extra info on T cell metadata is available (clonotypes.csv), it will be joined to the clonotype metadata. \cr
+
+Example dataset: \cr
+https://www.10xgenomics.com/resources/datasets/human-t-cells-from-a-healthy-donor-1-k-cells-multi-v-2-2-standard-5-0-0 \cr
+https://www.10xgenomics.com/resources/datasets/human-pbmc-from-a-healthy-donor-10-k-cells-multi-v-2-2-standard-5-0-0
 }
 \examples{
-Example dataset: https://www.10xgenomics.com/resources/datasets/human-t-cells-from-a-healthy-donor-1-k-cells-multi-v-2-2-standard-5-0-0
-https://www.10xgenomics.com/resources/datasets/human-pbmc-from-a-healthy-donor-10-k-cells-multi-v-2-2-standard-5-0-0
-seu.data <- Read10X_h5(filename = "inst/extdata/sc5p_v2_hs_T_1k_multi_5gex_t_count_filtered_feature_bc_matrix.h5")
+# library
+library(Seurat)
+library(Biobase)
+
+# Read h5 data and create a Seurat object
+seu.data <- Read10X_h5(filename = system.file("extdata", "sc5p_v2_hs_T_1k_multi_5gex_t_count_filtered_feature_bc_matrix.h5", package="VDJChef"))
 seu <- CreateSeuratObject(counts=seu.data)
 meta <- seu@meta.data
 meta$barcode <- rownames(meta)
+
+# Create an ExpressionSet object
 eset <- ExpressionSet(as.matrix(seu@assays$RNA@counts))
 pData(eset) <- seu@meta.data
-tcrmeta <- getTCR(vdj_dir="inst/extdata/1kcells-multi/vdj_t/")
-addTCR(seu,tcrmeta)
-addTCR(eset,tcrmeta)
+
+# import TCR metadata
+tcrmeta <- getTCR(system.file("extdata", "1kcells-multi/vdj_t/", package="VDJChef"))
+seu <- addTCR(seu, tcrmeta)
+eset <- addTCR(eset, tcrmeta)
+
 }
