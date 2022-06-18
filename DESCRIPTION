@@ -11,3 +11,5 @@ Encoding: UTF-8
 LazyData: true
 Imports: dplyr, Seurat, Biobase, grid, ComplexHeatmap, devtools, stringr, circlize, ggplot2
 RoxygenNote: 7.2.0
+Depends: 
+    R (>= 2.10)

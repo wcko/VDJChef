@@ -42,7 +42,7 @@ pData(eset) <- seu@meta.data
 
 # import TCR metadata
 tcrmeta <- getTCR(system.file("extdata", "1kcells-multi/vdj_t/", package="VDJChef"))
-seu <- addTCR(seu,tcrmeta)
-eset <- addTCR(eset,tcrmeta)
+seu <- addTCR(seu, tcrmeta)
+eset <- addTCR(eset, tcrmeta)
 
 }
