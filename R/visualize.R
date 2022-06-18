@@ -132,6 +132,7 @@ plot_embed_clonotype <- function (input, title = "", clonotype_id, clonotype_by,
 #' @export
 #'
 #' @examples
+#'
 #' get_topclonotypes(pfizer, clonotype_by = "CTaa", patient_by = "Patient", sample_by = "Sample") # ClonotypeIDs not listed, as not directly comparable across different patients
 #' get_topclonotypes(pfizer, clonotype_by = "CTaa", group_by = "Sample")
 #' get_topclonotypes(pfizer[,which(pData(pfizer)$Patient=="VB234")], clonotype_by = "CTaa", group_by="Sample")

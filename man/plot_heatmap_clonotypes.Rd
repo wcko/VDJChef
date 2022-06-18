@@ -10,6 +10,8 @@ plot_heatmap_clonotypes(
   patient_by = NULL,
   sample_by = NULL,
   group_by = NULL,
+  sort_by = NULL,
+  sort_id = NULL,
   ntop = 20,
   Count_limit = NULL
 )
@@ -24,6 +26,10 @@ plot_heatmap_clonotypes(
 \item{sample_by}{meta.data or pData column name for sample}
 
 \item{group_by}{What to color points by, either "UMI_sum", or meta.data or pData column name, ignored if gene is provided}
+
+\item{sort_by}{The metadata column for sorting}
+
+\item{sort_id}{The value in the metadata column for sorting}
 
 \item{ntop}{the number of top clonotypes to return}
 

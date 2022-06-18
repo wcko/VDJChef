@@ -22,19 +22,21 @@ corresponding chains with the highest expression for a single barcode.}
 }
 \value{
 Data frame of clonotypes for individual cell barcodes
-
-Example dataset: https://www.10xgenomics.com/resources/datasets/human-t-cells-from-a-healthy-donor-1-k-cells-multi-v-2-2-standard-5-0-0
-https://www.10xgenomics.com/resources/datasets/human-pbmc-from-a-healthy-donor-10-k-cells-multi-v-2-2-standard-5-0-0
 }
 \description{
-getTCR
+Imports a contig and clonotype (if exists) metadata from Cell Ranger VDJ output directory.
 }
 \details{
 Reads output directory of Cellranger VDJ (or multi) to output clonotype metadata (TCR chains, VDJ genes, reads, umis).
-If extra info on T cell metadata is available (clonotypes.csv), it will be joined to the clonotype metadata.
+If extra info on T cell metadata is available (clonotypes.csv), it will be joined to the clonotype metadata.\cr
+
+Example dataset: \cr
+https://www.10xgenomics.com/resources/datasets/human-t-cells-from-a-healthy-donor-1-k-cells-multi-v-2-2-standard-5-0-0 \cr
+https://www.10xgenomics.com/resources/datasets/human-pbmc-from-a-healthy-donor-10-k-cells-multi-v-2-2-standard-5-0-0
 }
 \examples{
-getTCR(vdj_dir="inst/extdata/1kcells-multi/vdj_t/")
-getTCR(vdj_dir="inst/extdata/1kcells-multi/vdj_t/", filteredcontigs = FALSE, removeMulti = TRUE)
-getTCR(contigfile="inst/extdata/1kcells-multi/vdj_t/filtered_contig_annotations.csv", clonotypefile="inst/extdata/1kcells-multi/vdj_t/clonotypes.csv")
+# Import TCR metadata
+tcrmeta <- getTCR(system.file("extdata", "1kcells-multi/vdj_t/", package="VDJChef"))
+tcrmeta <- getTCR(system.file("extdata", "1kcells-multi/vdj_t/", package="VDJChef"), filteredcontigs = FALSE, removeMulti = TRUE)
+
 }

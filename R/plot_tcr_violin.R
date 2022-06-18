@@ -1,4 +1,5 @@
 #' plot_tcr_violin
+#'
 #' @description Create violin plot of Expanded clone of interest vs background Non-expanded clones
 #' @param input SatijaLab’s Seurat Class, with normalized expression values in assay data slot, and TCR Clonotype ID's in meta.data. Or input Bioconductor’s ExpressionSet Class with (not log) values in exprs().
 #' @param title Title of the graph. Would be the gene name followed by clone's ID if not specified
@@ -18,9 +19,11 @@
 #' @param size the size of dots.
 #' @param sig the number of digits after the decimal point for cell fraction value.
 #' @param contour_line_width the thickness of the violin contour line
+#'
 #' @details
 #' Utilize information stored in meta.data to control the plot display. Each point_by as a dot with a bar showing the weighted mean of all point_by dots.
 #' color_by is set to display Expanded and Non-expanded clones
+#'
 #' @examples
 #' plot_tcr_violin(ex_sc, gene = "rna_GNLY", clone = "clonotype1_SJS001", facet_by = c("hash.ID"))
 #' plot_tcr_violin(ex_sc, gene = "CD8A", clone = "CAAGAGFGNVLHC_CASSIGRWNGYTF", clonotype_id="CTaa", threshold=1, facet_by = c("Patient","Sample_Subtype) )

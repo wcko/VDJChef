@@ -1,4 +1,5 @@
 #' plot_violin
+#'
 #' @description Create violin plot. Function from Garber Lab SignallingSingleCell, modified for input Seurat Object and Expression Set
 #' @param input SatijaLab’s Seurat Class, with normalized expression values in assay data slot. Or input Bioconductor’s ExpressionSet Class with (not log) values in exprs().
 #' @param title Title of the graph. Would be the gene name if not specified

@@ -8,8 +8,8 @@ get_topclonotypes(
   input,
   clonotype_by,
   group_by = NULL,
-  sample_by = NULL,
   patient_by = NULL,
+  sample_by = NULL,
   ntop = 20,
   split_by = NULL,
   chain_type = NULL
@@ -20,11 +20,11 @@ get_topclonotypes(
 
 \item{clonotype_by}{meta.data or pData column name for clonotype ID's}
 
-\item{group_by}{meta.data or pData column name for grouping specific clonotype frequencies}
+\item{group_by}{meta.data or pData column names for grouping specific clonotype frequencies, if multiple columns are entered, columns are merged by paste}
 
-\item{sample_by}{meta.data or pData column name for sample}
+\item{patient_by}{meta.data or pData column name for patient, ignored if split_by is not NULL}
 
-\item{patient_by}{meta.data or pData column name for patient}
+\item{sample_by}{meta.data or pData column name for sample, ignored if split_by is not NULL}
 
 \item{ntop}{the number of top clonotypes to return}
 
