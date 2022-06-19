@@ -24,6 +24,9 @@ VDJ_visualize(
 
 \item{split.by}{Which meta.data to split the data by.}
 }
+\value{
+
+}
 \description{
 Visualize V, D or J gene frequencies across Patients or Samples in a bar graph.
 }

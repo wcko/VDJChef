@@ -88,6 +88,44 @@ get_topclonotypes <- function(input, clonotype_by, group_by = NULL, patient_by =
   return(clonotypes_vs_color)
 }
 
+## get_silhouette
+#' Returns an object 'sil' of class 'silhouette' (from package cluster), which is an n x 3 matrix.
+#' For each obs i, the first col is its cluster identity, second col is closest neighbor,
+#' and third col is silhouette score (-1,1) where -1: clusters assigned wrong way, 0: clusters indifferent, 1: clusters well apart
+#' Requires PCA matrix embedding to have been calculated on the input object
+#'
+#' @param input Seurat Object or ExpressionSet, where PCA matrix has been calculated and assigned to PCA slot
+#' @param pcs Number of principal components to use
+#' @param distmetric Distance metric "euclidean", "manhattan"
+#' @param anno column name in meta.data or pData column name that refers to the cluster annotations
+#'
+#' @importFrom cluster silhouette
+#' @importFrom stats dist
+#'
+#' @export
+#'
+#' @examples
+#' get_silhouette(pfizer, anno = 'cluster_ID')
+#'
+get_silhouette <- function(input, pcs = 10, distmetric = 'euclidean', anno = 'seurat_clusters') {
+  maxpcs <- ncol(input[['pca']]@cell.embeddings)
+  if(maxpcs < pcs){
+    print("Maximum number of PCs in embedding is less than that specified. Setting maximum number of PCs to that in embedding")
+    pcs <- maxpcs
+  }
+  x <- as.matrix(Embeddings(object=input[['pca']])[,1:pcs])
+  distances <- dist(x, method=distmetric)
+  distancemat <- as.matrix(distances)
+  input@meta.data[,anno] <- droplevels(input@meta.data[,anno])
+  clusterids <- as.numeric(input@meta.data[,anno]) #change factor names to numeric as required for silhouette function
+  sil <- silhouette(clusterids,dmatrix=distancemat)
+  annonames <- levels(input@meta.data[,anno])
+  suppressWarnings(sil[,1:2] <- annonames[match(sil[,1:2],levels(factor(clusterids)),annonames)]) #convert numerics back to names if applicable
+  return(sil)
+}
+
+
+
 
 
 
