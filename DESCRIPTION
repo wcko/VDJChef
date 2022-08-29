@@ -9,5 +9,7 @@ Description: VDJChef is an R package to import, visualize and analyze Cellranger
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
-Imports: dplyr, grid, ComplexHeatmap, devtools, stringr, circlize, ggplot2
-RoxygenNote: 7.1.2
+Imports: dplyr, Seurat, Biobase, grid, ComplexHeatmap, devtools, stringr, circlize, ggplot2
+RoxygenNote: 7.2.0
+Depends: 
+    R (>= 2.10)
